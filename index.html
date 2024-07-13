@@ -119,11 +119,26 @@ function updateOutput() {
     let posY = antennaLength / 2;
     let negY = -(antennaLength / 2);
 
+    // Get the canvas and context
+    const canvas = document.getElementById('antennaCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Clear the canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Set up the canvas context
+    ctx.strokeStyle = 'black';
+    ctx.lineWidth = conductorWidth;
+
+    // Translate canvas origin to the center
+    ctx.translate(canvas.width / 2, canvas.height / 2);
+
     for (let i = 0; i < turns; i++) {
         let uuid = generateUUID();
 
         // First Line: Extend left
         output += fpLine(x, y, negX, y, conductorWidth, uuid);
+        drawLine(ctx, x, y, negX, y);
         x = negX;
 
         // Adjust negative X boundary inward
@@ -131,6 +146,7 @@ function updateOutput() {
 
         // Second Line: Extend upward (more negative y)
         output += fpLine(x, y, x, negY, conductorWidth, uuid);
+        drawLine(ctx, x, y, x, negY);
         y = negY;
 
         // Adjust negative Y boundary inward
@@ -138,27 +154,36 @@ function updateOutput() {
 
         // Third Line: Extend right (more positive x)
         output += fpLine(x, y, posX, y, conductorWidth, uuid);
+        drawLine(ctx, x, y, posX, y);
         x = posX;
 
         // Adjust positive X boundary inward
         posX -= conductorSpacing;
 
         // Fourth Line: Extend downward (less negative y)
-        output += fpLine(x, y, x, posY - conductorSpacing, conductorWidth, uuid);
-        y = posY - conductorSpacing;
-
-        // Adjust positive Y boundary inward
-        posY -= conductorSpacing;
-
-        // Fifth Line: Extend left (more negative x)
         if (i == turns - 1) {
-            // Final turn: adjust the end x position to 0
-            output += fpLine(x, y, 0, y, conductorWidth, uuid);
+            // Final turn: adjust the end y position to the current y position
+            output += fpLine(x, y, x, y, conductorWidth, uuid);
+            drawLine(ctx, x, y, x, y);
         } else {
-            output += fpLine(x, y, negX, y, conductorWidth, uuid);
-            x = negX;
+            output += fpLine(x, y, x, posY - conductorSpacing, conductorWidth, uuid);
+            drawLine(ctx, x, y, x, posY - conductorSpacing);
+            y = posY - conductorSpacing;
+
+            // Adjust positive Y boundary inward
+            posY -= conductorSpacing;
+        }
+
+        // Fifth Line: Extend left to x=0 for the last turn
+        if (i == turns - 1) {
+            output += fpLine(x, y, 0, y, conductorWidth, uuid);
+            drawLine(ctx, x, y, 0, y);
+            x = 0;
         }
     }
+
+    // Reset canvas transformation
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
 
     document.getElementById('output').value = output;
 }
