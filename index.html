@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,7 +14,6 @@
             font-family: Arial, sans-serif;
             background-color: #f0f0f0;
         }
-
         .container {
             text-align: center;
             background: #fff;
@@ -25,17 +23,14 @@
             width: 80%;
             max-width: 600px;
         }
-
         .input-group {
             margin: 10px 0;
         }
-
         .input-group label {
             display: block;
             margin-bottom: 5px;
             font-weight: bold;
         }
-
         .input-group input {
             width: 100%;
             padding: 8px;
@@ -43,7 +38,6 @@
             border: 1px solid #ccc;
             border-radius: 4px;
         }
-
         #output {
             margin-top: 20px;
             width: 100%;
@@ -55,7 +49,6 @@
             font-family: monospace;
             resize: none;
         }
-
         #copy-button {
             margin-top: 10px;
             padding: 10px 20px;
@@ -66,178 +59,133 @@
             border-radius: 4px;
             cursor: pointer;
         }
-
         #copy-button:hover {
             background-color: #45a049;
         }
     </style>
 </head>
-
 <body>
 
-    <div class="container">
-        <h1>KiCad Antenna Line Generator</h1>
-        <p style="text-align: left;">Input your antenna parameters and copy the output text. Create an empty KiCad
-            footprint and save it. Navigate to your new *.kicad_mod file, open it in a text editor, and paste the lines
-            within the top-level enclosing parentheses. Save the file—if it's still open in KiCad it should ask you if
-            you want to reload it.</p>
-        <div class="input-group">
-            <label for="turns">Turns</label>
-            <input type="number" id="turns" oninput="updateOutput()" value="10">
-        </div>
-        <div class="input-group">
-            <label for="antenna-length">Antenna Length (mm)</label>
-            <input type="number" step="0.01" id="antenna-length" oninput="updateOutput()" value="45">
-        </div>
-        <div class="input-group">
-            <label for="antenna-width">Antenna Width (mm)</label>
-            <input type="number" step="0.01" id="antenna-width" oninput="updateOutput()" value="25">
-        </div>
-        <div class="input-group">
-            <label for="conductor-width">Conductor Width (mm)</label>
-            <input type="number" step="0.01" id="conductor-width" oninput="updateOutput()" value="0.2">
-        </div>
-        <div class="input-group">
-            <label for="conductor-spacing">Conductor Spacing (mm)</label>
-            <input type="number" step="0.01" id="conductor-spacing" oninput="updateOutput()" value="0.6">
-        </div>
-        <textarea id="output" readonly></textarea>
-        <button id="copy-button" onclick="copyToClipboard()">Click to Copy</button>
-
-        <canvas id="antennaCanvas" width="800" height="800"></canvas>
+<div class="container">
+    <h1>KiCad Antenna Line Generator</h1>
+    <p style="text-align: left;">Input your antenna parameters and copy the output text. Create an empty KiCad footprint and save it. Navigate to your new *.kicad_mod file, open it in a text editor, and paste the lines within the top-level enclosing parentheses. Save the file—if it's still open in KiCad it should ask you if you want to reload it.</p>
+    <div class="input-group">
+        <label for="turns">Turns</label>
+        <input type="number" id="turns" oninput="updateOutput()" value="10">
     </div>
+    <div class="input-group">
+        <label for="antenna-length">Antenna Length (mm)</label>
+        <input type="number" step="0.01" id="antenna-length" oninput="updateOutput()" value="45">
+    </div>
+    <div class="input-group">
+        <label for="antenna-width">Antenna Width (mm)</label>
+        <input type="number" step="0.01" id="antenna-width" oninput="updateOutput()" value="25">
+    </div>
+    <div class="input-group">
+        <label for="conductor-width">Conductor Width (mm)</label>
+        <input type="number" step="0.01" id="conductor-width" oninput="updateOutput()" value="0.2">
+    </div>
+    <div class="input-group">
+        <label for="conductor-spacing">Conductor Spacing (mm)</label>
+        <input type="number" step="0.01" id="conductor-spacing" oninput="updateOutput()" value="0.6">
+    </div>
+    <textarea id="output" readonly></textarea>
+    <button id="copy-button" onclick="copyToClipboard()">Click to Copy</button>
+</div>
 
-    <script>
-        function updateOutput() {
-            const turns = parseInt(document.getElementById('turns').value) || 0;
-            const antennaLength = parseFloat(document.getElementById('antenna-length').value) || 0;
-            const antennaWidth = parseFloat(document.getElementById('antenna-width').value) || 0;
-            const conductorWidth = parseFloat(document.getElementById('conductor-width').value) || 0;
-            const conductorSpacing = parseFloat(document.getElementById('conductor-spacing').value) || 0;
+<script>
+function updateOutput() {
+    const turns = parseInt(document.getElementById('turns').value) || 0;
+    const antennaLength = parseFloat(document.getElementById('antenna-length').value) || 0;
+    const antennaWidth = parseFloat(document.getElementById('antenna-width').value) || 0;
+    const conductorWidth = parseFloat(document.getElementById('conductor-width').value) || 0;
+    const conductorSpacing = parseFloat(document.getElementById('conductor-spacing').value) || 0;
 
-            let output = '';
-            let x = 0;
-            let y = antennaLength / 2;
+    let output = '';
+    let x = 0;
+    let y = antennaLength / 2;
 
-            // Define the starting boundaries
-            let posX = antennaWidth / 2;
-            let negX = -(antennaWidth / 2);
-            let posY = antennaLength / 2;
-            let negY = -(antennaLength / 2);
+    // Define the starting boundaries
+    let posX = antennaWidth / 2;
+    let negX = -(antennaWidth / 2);
+    let posY = antennaLength / 2;
+    let negY = -(antennaLength / 2);
 
-            // Get the canvas and context
-            const canvas = document.getElementById('antennaCanvas');
-            const ctx = canvas.getContext('2d');
+    for (let i = 0; i < turns; i++) {
+        let uuid = generateUUID();
 
-            // Clear the canvas
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        // First Line: Extend left
+        output += fpLine(x, y, negX, y, conductorWidth, uuid);
+        x = negX;
 
-            // Calculate the scale factor to fit the canvas
-            const maxDim = Math.max(antennaLength, antennaWidth);
-            const scaleFactor = Math.min(canvas.width, canvas.height) / (maxDim + 2 * conductorSpacing * turns);
+        // Adjust negative X boundary inward
+        negX += conductorSpacing;
 
-            // Set up the canvas context
-            ctx.strokeStyle = 'black';
-            ctx.lineWidth = conductorWidth * scaleFactor;
+        // Second Line: Extend upward (more negative y)
+        output += fpLine(x, y, x, negY, conductorWidth, uuid);
+        y = negY;
 
-            // Translate canvas origin to the center and apply scaling
-            ctx.setTransform(scaleFactor, 0, 0, scaleFactor, canvas.width / 2, canvas.height / 2);
+        // Adjust negative Y boundary inward
+        negY += conductorSpacing;
 
-            for (let i = 0; i < turns; i++) {
-                let uuid = generateUUID();
+        // Third Line: Extend right (more positive x)
+        output += fpLine(x, y, posX, y, conductorWidth, uuid);
+        x = posX;
 
-                // First Line: Extend left
-                output += fpLine(x, y, negX, y, conductorWidth, uuid);
-                drawLine(ctx, x, y, negX, y);
-                x = negX;
+        // Adjust positive X boundary inward
+        posX -= conductorSpacing;
 
-                // Adjust negative X boundary inward
-                negX += conductorSpacing;
+        // Fourth Line: Extend downward (less negative y)
+        output += fpLine(x, y, x, posY - conductorSpacing, conductorWidth, uuid);
+        y = posY - conductorSpacing;
 
-                // Second Line: Extend upward (more negative y)
-                output += fpLine(x, y, x, negY, conductorWidth, uuid);
-                drawLine(ctx, x, y, x, negY);
-                y = negY;
+        // Adjust positive Y boundary inward
+        posY -= conductorSpacing;
 
-                // Adjust negative Y boundary inward
-                negY += conductorSpacing;
-
-                // Third Line: Extend right (more positive x)
-                output += fpLine(x, y, posX, y, conductorWidth, uuid);
-                drawLine(ctx, x, y, posX, y);
-                x = posX;
-
-                // Adjust positive X boundary inward
-                posX -= conductorSpacing;
-
-                // Fourth Line: Extend downward (less negative y)
-                if (i == turns - 1) {
-                    // Final turn: adjust the end y position to the current y position
-                    output += fpLine(x, y, x, y, conductorWidth, uuid);
-                    drawLine(ctx, x, y, x, y);
-                } else {
-                    output += fpLine(x, y, x, posY - conductorSpacing, conductorWidth, uuid);
-                    drawLine(ctx, x, y, x, posY - conductorSpacing);
-                    y = posY - conductorSpacing;
-
-                    // Adjust positive Y boundary inward
-                    posY -= conductorSpacing;
-                }
-
-                // Fifth Line: Extend left to x=0 for the last turn
-                if (i == turns - 1) {
-                    output += fpLine(x, y, 0, y, conductorWidth, uuid);
-                    drawLine(ctx, x, y, 0, y);
-                    x = 0;
-                }
-            }
-
-            // Reset canvas transformation
-            ctx.setTransform(1, 0, 0, 1, 0, 0);
-
-            document.getElementById('output').value = output;
+        // Fifth Line: Extend left (more negative x)
+        if (i == turns - 1) {
+            // Final turn: adjust the end x position to 0
+            output += fpLine(x, y, 0, y, conductorWidth, uuid);
+        } else {
+            output += fpLine(x, y, negX, y, conductorWidth, uuid);
+            x = negX;
         }
+    }
 
-        function fpLine(startX, startY, endX, endY, width, uuid) {
-            return `(fp_line\n` +
-                `\t(start ${startX.toFixed(2)} ${startY.toFixed(2)})\n` +
-                `\t(end ${endX.toFixed(2)} ${endY.toFixed(2)})\n` +
-                `\t(stroke\n` +
-                `\t\t(width ${width.toFixed(2)})\n` +
-                `\t\t(type default)\n` +
-                `\t)\n` +
-                `\t(layer "F.Cu")\n` +
-                `\t(uuid "${uuid}")\n` +
-                `)\n\n`;
-        }
+    document.getElementById('output').value = output;
+}
 
-        function drawLine(ctx, startX, startY, endX, endY) {
-            ctx.beginPath();
-            ctx.moveTo(startX, startY);
-            ctx.lineTo(endX, endY);
-            ctx.stroke();
-        }
+function fpLine(startX, startY, endX, endY, width, uuid) {
+    return `(fp_line\n` +
+        `\t(start ${startX.toFixed(2)} ${startY.toFixed(2)})\n` +
+        `\t(end ${endX.toFixed(2)} ${endY.toFixed(2)})\n` +
+        `\t(stroke\n` +
+        `\t\t(width ${width.toFixed(2)})\n` +
+        `\t\t(type default)\n` +
+        `\t)\n` +
+        `\t(layer "F.Cu")\n` +
+        `\t(uuid "${uuid}")\n` +
+        `)\n\n`;
+}
 
-        function generateUUID() {
-            // Simple UUID generator
-            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-                const r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-                return v.toString(16);
-            });
-        }
+function generateUUID() {
+    // Simple UUID generator
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        const r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+}
 
-        window.addEventListener('load', updateOutput);
+window.addEventListener('load', updateOutput);
 
-
-        function copyToClipboard() {
-            const output = document.getElementById('output');
-            output.select();
-            output.setSelectionRange(0, 99999); // For mobile devices
-            document.execCommand("copy");
-            alert("Output copied to clipboard");
-        }
-    </script>
+    function copyToClipboard() {
+        const output = document.getElementById('output');
+        output.select();
+        output.setSelectionRange(0, 99999); // For mobile devices
+        document.execCommand("copy");
+        alert("Output copied to clipboard");
+    }
+</script>
 
 </body>
-
 </html>
