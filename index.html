@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KiCad Antenna Line Generator</title>
+    <title>KiCad Antenna Generator</title>
     <style>
         body {
             display: flex;
@@ -36,7 +36,8 @@
             font-weight: bold;
         }
 
-        .input-group input {
+        .input-group input,
+        .input-group select {
             width: 35%;
             padding: 8px;
             box-sizing: border-box;
@@ -78,6 +79,7 @@
             display: flex;
             justify-content: center;
             margin-bottom: 20px;
+            margin-top: 20px;
             border-bottom: 2px solid #666;
         }
 
@@ -103,23 +105,32 @@
             margin-top: 10px;
         }
     </style>
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 
 <body>
 
     <div class="container">
-        <h1>KiCad Antenna Line Generator</h1>
-        <p style="text-align: left;">Input your antenna parameters and copy the output text. Create an empty KiCad
-            footprint and save it. Navigate to your new *.kicad_mod file, open it in a text editor, and paste the
-            lines within the top-level enclosing parentheses. Save the file—if it's still open in KiCad it should
-            ask you if you want to reload it.</p>
-        <p style="text-align: left;">Based on the <a
-                href="an2972-how-to-design-an-antenna-for-dynamic-nfc-tags-stmicroelectronics.pdf">AN2972:
-                How to design an antenna for dynamic NFC tags</a>.</p>
+        <h1>KiCad Antenna Generator</h1>
 
-        <br>
+        <div class="input-group">
+            <label for="radius-outer">Part Name</label>
+            <input type="text" id="name" oninput="updateOutputRectangular();updateOutputSpiral();" value="KiCadAntenna">
+        </div>
+        <div class="input-group">
+            <label for="turns">Turns</label>
+            <input type="number" id="turns" oninput="updateOutputRectangular();updateOutputSpiral();" value="10">
+        </div>
+        <div class="input-group">
+            <label for="conductor-width">Conductor Width (mm)</label>
+            <input type="number" step="0.01" id="conductor-width"
+                oninput="updateOutputRectangular();updateOutputSpiral();" value="0.8">
+        </div>
+        <div class="input-group">
+            <label for="drill-size">Drill Size (mm)</label>
+            <input type="number" step="0.01" id="drill-size" oninput="updateOutputRectangular();updateOutputSpiral();"
+                value="0.4">
+        </div>
 
         <div class="tab-buttons">
             <button onclick="showTab('rectangular')" class="active">Rectangular</button>
@@ -127,10 +138,6 @@
         </div>
 
         <div id="rectangular" class="tab">
-            <div class="input-group">
-                <label for="turns">Turns</label>
-                <input type="number" id="turns" oninput="updateOutputRectangular()" value="10">
-            </div>
             <div class="input-group">
                 <label for="antenna-length">Antenna Length (mm)</label>
                 <input type="number" step="0.01" id="antenna-length" oninput="updateOutputRectangular()" value="45">
@@ -140,15 +147,19 @@
                 <input type="number" step="0.01" id="antenna-width" oninput="updateOutputRectangular()" value="25">
             </div>
             <div class="input-group">
-                <label for="conductor-width">Conductor Width (mm)</label>
-                <input type="number" step="0.01" id="conductor-width" oninput="updateOutputRectangular()" value="0.2">
-            </div>
-            <div class="input-group">
                 <label for="conductor-spacing">Conductor Spacing (mm)</label>
                 <input type="number" step="0.01" id="conductor-spacing" oninput="updateOutputRectangular()" value="0.6">
             </div>
             <div class="input-group">
-                <label for="inductance-rectangular">Est. Inductance (uH)</label>
+                <label for="rect-style">Style:</label>
+                <select id="rect-style" name="rect-style" required oninput="updateOutputRectangular()">
+                    <option value="1">Straight Lines</option>
+                    <option value="2">Slope Always on Same X</option>
+                    <option value="3">Constant 45° Slope</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>Est. Inductance (uH)</label>
                 <div id="inductance-rectangular" style="font-size: 1.2em; font-weight: bold;"></div>
             </div>
             <div class="formula">
@@ -167,7 +178,8 @@
                 </p>
             </div>
             <textarea id="output-rectangular" readonly></textarea>
-            <button id="copy-button-rectangular" onclick="copyToClipboard('output-rectangular')">Click to Copy</button>
+            <button id="copy-button-rectangular" onclick="copyToClipboard('output-rectangular')">Copy</button>
+            <button id="download-button-spiral" onclick="downloadRectangularContent()">Download</button>
         </div>
 
         <div id="spiral" class="tab">
@@ -180,19 +192,11 @@
                 <input type="number" step="0.01" id="radius-inner" oninput="updateOutputSpiral()" value="30">
             </div>
             <div class="input-group">
-                <label for="turns">Turns</label>
-                <input type="number" id="spiral-turns" oninput="updateOutputSpiral()" value="10">
-            </div>
-            <div class="input-group">
                 <label for="segments">Segments Per Turn</label>
                 <input type="number" id="segments" oninput="updateOutputSpiral()" value="36">
             </div>
             <div class="input-group">
-                <label for="conductor-width">Conductor Width (mm)</label>
-                <input type="number" step="0.01" id="spiral-conductor-width" oninput="updateOutputSpiral()" value="0.2">
-            </div>
-            <div class="input-group">
-                <label for="inductance-spiral">Est. Inductance (uH)</label>
+                <label>Est. Inductance (uH)</label>
                 <div id="inductance-spiral" style="font-size: 1.2em; font-weight: bold;"></div>
             </div>
             <div class="formula">
@@ -209,7 +213,18 @@
                 </p>
             </div>
             <textarea id="output-spiral" readonly></textarea>
-            <button id="copy-button-spiral" onclick="copyToClipboard('output-spiral')">Click to Copy</button>
+            <button id="copy-button-spiral" onclick="copyToClipboard('output-spiral')">Copy</button>
+            <button id="download-button-spiral" onclick="downloadSpiralContent()">Download</button>
+        </div>
+        <br>
+        <hr>
+        <div style="font-size: 0.8rem;">
+            <p>&bull;&MediumSpace;<a
+                    href="an2972-how-to-design-an-antenna-for-dynamic-nfc-tags-stmicroelectronics.pdf">AN2972:
+                    How to design an antenna for dynamic NFC tags</a></p>
+            <p>&bull;&MediumSpace;<a href="https://eds.st.com/antenna/#/">ST NFC Inductance Calculator</a></p>
+            <p>&bull;&MediumSpace;<a href="https://github.com/nideri/nfc_antenna_generator">AN2972:
+                    Python NFC Antenna Generator by nideri</a></p>
         </div>
     </div>
 
@@ -222,60 +237,428 @@
             document.querySelector('.tab-buttons button[onclick="showTab(\'' + tabName + '\')"]').classList.add('active');
         }
 
+        function downloadSpiralContent() {
+            const textContent = document.getElementById('output-spiral').value;
+            const filename = document.getElementById('name').value + ".kicad_mod"
+                || 'spiral.kicad_mod';
+            downloadFile(filename, textContent);
+        }
+
+        function downloadRectangularContent() {
+            const textContent = document.getElementById('output-rectangular').value;
+            const filename = document.getElementById('name').value + ".kicad_mod"
+                || 'rectangular.kicad_mod';
+            downloadFile(filename, textContent);
+        }
+
+        function downloadFile(filename, textContent) {
+            // Create a Blob containing the text content
+            const blob = new Blob([textContent], { type: 'text/plain' });
+
+            // Create a temporary URL for the Blob
+            const url = URL.createObjectURL(blob);
+
+            // Create a new <a> element
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename; // Set the filename for the download
+
+            // Append the <a> element to the document body
+            document.body.appendChild(a);
+
+            // Trigger a click event on the <a> element
+            a.click();
+
+            // Clean up: remove the <a> element and revoke the URL
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
         function updateOutputRectangular() {
+            // Fetch values from input fields
             const turns = parseInt(document.getElementById('turns').value) || 0;
             const antennaLength = parseFloat(document.getElementById('antenna-length').value) || 0;
             const antennaWidth = parseFloat(document.getElementById('antenna-width').value) || 0;
             const conductorWidth = parseFloat(document.getElementById('conductor-width').value) || 0;
             const conductorSpacing = parseFloat(document.getElementById('conductor-spacing').value) || 0;
+            const drillSize = parseFloat(document.getElementById('drill-size').value) || 0;
+            const style = parseInt(document.getElementById('rect-style').value) || 1;
+            const name = document.getElementById('name').value || "rect";
+            let conductorSpacingMin = -1.0;
+            const silkMargin = 1.0;
 
-            let output = '';
-            let x = 0;
-            let y = antennaLength / 2;
+            // Get current timestamp in seconds
+            let seconds = Math.floor(Date.now() / 1000);
 
-            let posX = antennaWidth / 2;
-            let negX = -(antennaWidth / 2);
-            let posY = antennaLength / 2;
-            let negY = -(antennaLength / 2);
-
-            for (let i = 0; i < turns; i++) {
-                let uuid = generateUUID();
-
-                output += fpLine(x, y, negX, y, conductorWidth, uuid);
-                x = negX;
-                negX += conductorSpacing;
-                output += fpLine(x, y, x, negY, conductorWidth, uuid);
-                y = negY;
-                negY += conductorSpacing;
-                output += fpLine(x, y, posX, y, conductorWidth, uuid);
-                x = posX;
-                posX -= conductorSpacing;
-                output += fpLine(x, y, x, posY - conductorSpacing, conductorWidth, uuid);
-                y = posY - conductorSpacing;
-                posY -= conductorSpacing;
-
-                if (i == turns - 1) {
-                    output += fpLine(x, y, 0, y, conductorWidth, uuid);
-                } else {
-                    output += fpLine(x, y, negX, y, conductorWidth, uuid);
-                    x = negX;
+            if (drillSize < 0) {
+                drillSize = Math.floor(conductorWidth / 2 * 10) / 10;
+                if (drillSize === 0) {
+                    console.log("WARNING: drillSize was < 0 and is therefore autocalculated. The resulting drillSize is 0! The pad is replaced by an SMD pad. Select drillSize manually!");
                 }
             }
+            if (drillSize > conductorWidth) {
+                console.log("WARNING: drillSize > conductorWidth!");
+            }
 
-            document.getElementById('output-rectangular').value = output;
+            let mod = "";
+            mod += `(module ${name} (layer F.Cu) (tedit ${seconds})\n`;
+            mod += `  (fp_text reference REF** (at ${antennaLength / 2} ${antennaWidth / 2}) (layer F.SilkS)\n`;
+            mod += `    (effects (font (size 1 1) (thickness 0.15)))\n`;
+            mod += `  )\n`;
+            mod += `  (fp_text value ${name} (at ${antennaLength / 2} ${antennaWidth / 2 + 2}) (layer F.Fab)\n`;
+            mod += `    (effects (font (size 1 1) (thickness 0.15)))\n`;
+            mod += `  )\n`;
+            if (silkMargin >= 0) {
+                // Show outline on top silk
+                mod += `  (fp_line (start ${-silkMargin} ${-silkMargin}) (end ${antennaLength + silkMargin} ${-silkMargin}) (layer F.SilkS) (width 0.15))\n`;
+                mod += `  (fp_line (start ${antennaLength + silkMargin} ${-silkMargin}) (end ${antennaLength + silkMargin} ${antennaWidth + silkMargin}) (layer F.SilkS) (width 0.15))\n`;
+                mod += `  (fp_line (start ${antennaLength + silkMargin} ${antennaWidth + silkMargin}) (end ${-silkMargin} ${antennaWidth + silkMargin}) (layer F.SilkS) (width 0.15))\n`;
+                mod += `  (fp_line (start ${-silkMargin} ${antennaWidth + silkMargin}) (end ${-silkMargin} ${-silkMargin}) (layer F.SilkS) (width 0.15))\n`;
+                // Mark corners on bottom silk
+                // mod += `  (fp_line (start ${-silkMargin} ${-silkMargin}) (end ${(turns * (conductorWidth + conductorSpacing) - conductorSpacing + silkMargin)} ${-silkMargin}) (layer B.SilkS) (width 0.15))\n`;
+                // mod += `  (fp_line (start ${-silkMargin} ${-silkMargin}) (end ${-silkMargin} ${(turns * (conductorWidth + conductorSpacing) - conductorSpacing + silkMargin)}) (layer B.SilkS) (width 0.15))\n`;
+                // mod += `  (fp_line (start ${antennaLength + silkMargin} ${-silkMargin}) (end ${(antennaLength - (turns * (conductorWidth + conductorSpacing) - conductorSpacing + silkMargin))} ${-silkMargin}) (layer B.SilkS) (width 0.15))\n`;
+                // mod += `  (fp_line (start ${antennaLength + silkMargin} ${-silkMargin}) (end ${antennaLength + silkMargin} ${(turns * (conductorWidth + conductorSpacing) - conductorSpacing + silkMargin)}) (layer B.SilkS) (width 0.15))\n`;
+                // mod += `  (fp_line (start ${antennaLength + silkMargin} ${antennaWidth + silkMargin}) (end ${(antennaLength - (turns * (conductorWidth + conductorSpacing) - conductorSpacing + silkMargin))} ${antennaWidth + silkMargin}) (layer B.SilkS) (width 0.15))\n`;
+                // mod += `  (fp_line (start ${antennaLength + silkMargin} ${antennaWidth + silkMargin}) (end ${antennaLength + silkMargin} ${(antennaWidth - (turns * (conductorWidth + conductorSpacing) - conductorSpacing + silkMargin))}) (layer B.SilkS) (width 0.15))\n`;
+                // mod += `  (fp_line (start ${-silkMargin} ${antennaWidth + silkMargin}) (end ${(turns * (conductorWidth + conductorSpacing) - conductorSpacing + silkMargin)} ${antennaWidth + silkMargin}) (layer B.SilkS) (width 0.15))\n`;
+                // mod += `  (fp_line (start ${-silkMargin} ${antennaWidth + silkMargin}) (end ${-silkMargin} ${(antennaWidth - (turns * (conductorWidth + conductorSpacing) - conductorSpacing + silkMargin))}) (layer B.SilkS) (width 0.15))\n`;
+            }
+            console.log(style);
+            // Draw antenna
+            if (style === 3) { // Constant 45 deg slope
+                let xg = ((Math.sqrt(2) - 1) * turns + 1) * (conductorWidth + conductorSpacing);
+                let yg = (turns - 1) * (conductorWidth + conductorSpacing);
+                let dx1 = (Math.sqrt(2) - 1) * (conductorWidth + conductorSpacing);
+                let dx2 = (conductorWidth + conductorSpacing) * Math.sqrt(2);
+                let dy = (conductorWidth + conductorSpacing);
+
+                if (drillSize > 0) {
+                    mod += `  (pad 1 thru_hole circle (at ${antennaLength / 2 - xg / 2} ${antennaWidth - conductorWidth / 2}) (size ${conductorWidth} ${conductorWidth}) (drill ${drillSize}) (layers *.Cu *.Mask))\n`;
+                }
+                mod += `  (pad 1 smd custom (at ${antennaLength / 2 - xg / 2} ${antennaWidth - conductorWidth / 2}) (size ${conductorWidth} ${conductorWidth}) (layers F.Cu)\n`;
+                mod += `    (zone_connect 0)\n`;
+                mod += `    (options (clearance outline) (anchor circle))\n`;
+                mod += `    (primitives\n`;
+
+                let x0 = 0;
+                let y0 = 0;
+                let d = 0;
+                let seg = 0;
+
+                for (seg = 0; seg < turns * 6 - 2; seg++) {
+                    let x1, y1;
+
+                    switch (seg % 6) {
+                        case 0: // line goes left from middle
+                            x1 = x0 - (antennaLength / 2 - xg / 2 - conductorWidth / 2 - d) - Math.floor(seg / 6) * dx1;
+                            y1 = y0;
+                            break;
+                        case 1: // line goes up
+                            x1 = x0;
+                            y1 = y0 - (antennaWidth - conductorWidth - 2 * d);
+                            break;
+                        case 2: // line right
+                            x1 = x0 + (antennaLength - conductorWidth - 2 * d);
+                            y1 = y0;
+                            break;
+                        case 3: // line down
+                            x1 = x0;
+                            y1 = y0 + (antennaWidth - conductorWidth - 2 * d);
+                            break;
+                        case 4: // line goes left to the middle
+                            x1 = x0 - (antennaLength / 2 - xg / 2 - conductorWidth / 2 - d) - (turns - 1 - Math.floor(seg / 6)) * dx1;
+                            y1 = y0;
+                            break;
+                        case 5: // line from the middle with a slope to the next level
+                            x1 = x0 - dx2 + dx1;
+                            y1 = y0 - dy;
+                            d = d + conductorSpacing + conductorWidth;
+                            break;
+                        default:
+                            break;
+                    }
+
+                    mod += `      (gr_line (start ${x0} ${y0}) (end ${x1} ${y1}) (width ${conductorWidth}))\n`;
+                    x0 = x1;
+                    y0 = y1;
+                }
+
+                mod += `    ))\n`;
+
+                if (drillSize > 0) {
+                    mod += `  (pad 2 thru_hole circle (at ${antennaLength / 2 + xg / 2} ${antennaWidth - conductorWidth / 2 - yg}) (size ${conductorWidth} ${conductorWidth}) (drill ${drillSize}) (layers *.Cu *.Mask))\n`;
+                }
+
+                mod += `  (pad 2 smd custom (at ${antennaLength / 2 + xg / 2} ${antennaWidth - conductorWidth / 2 - yg}) (size ${conductorWidth} ${conductorWidth}) (layers F.Cu)\n`;
+                mod += `    (zone_connect 0)\n`;
+                mod += `    (options (clearance outline) (anchor circle))\n`;
+                mod += `    (primitives\n`;
+                mod += `      (gr_line (start 0 0) (end ${antennaLength / 2 - (xg / 2 + conductorWidth / 2) - d + (turns - 1 - Math.floor(seg / 6)) * dx1} 0) (width ${conductorWidth}))\n`;
+                mod += `    ))\n`;
+            } else if (style === 2) { // Slope always on the same x location
+                if (conductorSpacingMin < 0) {
+                    conductorSpacingMin = conductorSpacing / Math.sqrt(2);
+                }
+                let alpha = Math.asin((conductorWidth + conductorSpacingMin) / (conductorWidth + conductorSpacing));
+                let yg = conductorWidth + conductorSpacing;
+                let xg = Math.tan(alpha) * yg;
+
+                if (drillSize > 0) {
+                    mod += `  (pad 1 thru_hole circle (at ${antennaLength / 2 - xg / 2} ${antennaWidth - conductorWidth / 2}) (size ${conductorWidth} ${conductorWidth}) (drill ${drillSize}) (layers *.Cu *.Mask))\n`;
+                }
+                mod += `  (pad 1 smd custom (at ${antennaLength / 2 - xg / 2} ${antennaWidth - conductorWidth / 2}) (size ${conductorWidth} ${conductorWidth}) (layers F.Cu)\n`;
+                mod += `    (zone_connect 0)\n`;
+                mod += `    (options (clearance outline) (anchor circle))\n`;
+                mod += `    (primitives\n`;
+
+                let x0 = 0;
+                let y0 = 0;
+                let d = 0;
+
+                for (let seg = 0; seg < turns * 6 - 2; seg++) {
+                    let x1, y1;
+
+                    switch (seg % 6) {
+                        case 0: // line goes left from middle
+                            x1 = x0 - (antennaLength / 2 - xg / 2 - conductorWidth / 2 - d);
+                            y1 = y0;
+                            break;
+                        case 1: // line goes up
+                            x1 = x0;
+                            y1 = y0 - (antennaWidth - conductorWidth - 2 * d);
+                            break;
+                        case 2: // line right
+                            x1 = x0 + (antennaLength - conductorWidth - 2 * d);
+                            y1 = y0;
+                            break;
+                        case 3: // line down
+                            x1 = x0;
+                            y1 = y0 + (antennaWidth - conductorWidth - 2 * d);
+                            break;
+                        case 4: // line goes left to the middle
+                            x1 = x0 - (antennaLength / 2 - xg / 2 - conductorWidth / 2 - d);
+                            y1 = y0;
+                            break;
+                        case 5: // line from the middle with a slope to the next level
+                            x1 = x0 - xg;
+                            y1 = y0 - yg;
+                            d += conductorSpacing + conductorWidth;
+                            break;
+                        default:
+                            break;
+                    }
+
+                    mod += `      (gr_line (start ${x0} ${y0}) (end ${x1} ${y1}) (width ${conductorWidth}))\n`;
+
+                    x0 = x1;
+                    y0 = y1;
+                }
+
+                mod += `    ))\n`;
+
+                if (drillSize > 0) {
+                    mod += `  (pad 2 thru_hole circle (at ${antennaLength / 2 - xg / 2 + xg} ${antennaWidth - conductorWidth / 2 + y0}) (size ${conductorWidth} ${conductorWidth}) (drill ${drillSize}) (layers *.Cu *.Mask))\n`;
+                }
+                mod += `  (pad 2 smd custom (at ${antennaLength / 2 - xg / 2 + xg} ${antennaWidth - conductorWidth / 2 + y0}) (size ${conductorWidth} ${conductorWidth}) (layers F.Cu)\n`;
+                mod += `    (zone_connect 0)\n`;
+                mod += `    (options (clearance outline) (anchor circle))\n`;
+                mod += `    (primitives\n`;
+                mod += `      (gr_line (start ${0} ${0}) (end ${antennaLength / 2 - xg / 2 - conductorWidth / 2 - (turns - 1) * (conductorWidth + conductorSpacing)} ${0}) (width ${conductorWidth}))\n`;
+                mod += `    ))\n`;
+            } else if (style === 1) { // Straight lines
+                if (drillSize > 0) {
+                    mod += `  (pad 1 thru_hole circle (at ${conductorWidth / 2} ${antennaWidth - conductorWidth / 2}) (size ${conductorWidth} ${conductorWidth}) (drill ${drillSize}) (layers *.Cu *.Mask))\n`;
+                }
+                mod += `  (pad 1 smd custom (at ${conductorWidth / 2} ${antennaWidth - conductorWidth / 2}) (size ${conductorWidth} ${conductorWidth}) (layers F.Cu)\n`;
+                mod += `    (zone_connect 0)\n`;
+                mod += `    (options (clearance outline) (anchor circle))\n`;
+                mod += `    (primitives\n`;
+
+                let x0 = 0;
+                let y0 = 0;
+                let dx = antennaLength - conductorWidth;
+                let dy = antennaWidth - conductorWidth;
+
+                for (let seg = 0; seg < turns * 4 - 1; seg++) {
+                    let x1, y1;
+
+                    switch (seg % 4) {
+                        case 0: // line goes up
+                            x1 = x0;
+                            y1 = y0 - dy;
+                            break;
+                        case 1: // line goes right
+                            if (Math.floor(seg / 4) > 0) { // not for 1st right
+                                dx = dx - conductorWidth - conductorSpacing;
+                            }
+                            x1 = x0 + dx;
+                            y1 = y0;
+                            break;
+                        case 2: // line goes down
+                            if (Math.floor(seg / 4) > 0) { // not for 1st down
+                                dy = dy - conductorWidth - conductorSpacing;
+                            }
+                            x1 = x0;
+                            y1 = y0 + dy;
+                            break;
+                        case 3: // line goes left
+                            dx = dx - conductorWidth - conductorSpacing;
+                            x1 = x0 - dx;
+                            y1 = y0;
+                            dy = dy - conductorWidth - conductorSpacing;
+                            break;
+                        default:
+                            break;
+                    }
+
+                    mod += `      (gr_line (start ${x0} ${y0}) (end ${x1} ${y1}) (width ${conductorWidth}))\n`;
+
+                    x0 = x1;
+                    y0 = y1;
+                }
+
+                mod += `    ))\n`;
+
+                if (drillSize > 0) {
+                    mod += `  (pad 2 thru_hole circle (at ${conductorWidth / 2 + turns * (conductorWidth + conductorSpacing)} ${antennaWidth - conductorWidth / 2 + y0}) (size ${conductorWidth} ${conductorWidth}) (drill ${drillSize}) (layers *.Cu *.Mask))\n`;
+                }
+                mod += `  (pad 2 smd custom (at ${conductorWidth / 2 + turns * (conductorWidth + conductorSpacing)} ${antennaWidth - conductorWidth / 2 + y0}) (size ${conductorWidth} ${conductorWidth}) (layers F.Cu)\n`;
+                mod += `    (zone_connect 0)\n`;
+                mod += `    (options (clearance outline) (anchor circle))\n`;
+                mod += `    (primitives\n`;
+                mod += `      (gr_line (start ${0} ${0}) (end ${antennaLength + conductorSpacing - 2 * turns * (conductorWidth + conductorSpacing)} ${0}) (width ${conductorWidth}))\n`;
+                mod += `    ))\n`;
+            }
+            mod += `)\n`;
+            document.getElementById('output-rectangular').value = mod;
 
             const inductance = calculateInductanceRectangular(turns, antennaLength, antennaWidth, conductorWidth, conductorSpacing);
             document.getElementById('inductance-rectangular').textContent = inductance.toFixed(2);
         }
 
+        // function updateOutputRectangular() {
+        //     const turns = parseInt(document.getElementById('turns').value) || 0;
+        //     const antennaLength = parseFloat(document.getElementById('antenna-length').value) || 0;
+        //     const antennaWidth = parseFloat(document.getElementById('antenna-width').value) || 0;
+        //     const conductorWidth = parseFloat(document.getElementById('conductor-width').value) || 0;
+        //     const conductorSpacing = parseFloat(document.getElementById('conductor-spacing').value) || 0;
+
+        //     let output = '';
+        //     let x = 0;
+        //     let y = antennaLength / 2;
+
+        //     let posX = antennaWidth / 2;
+        //     let negX = -(antennaWidth / 2);
+        //     let posY = antennaLength / 2;
+        //     let negY = -(antennaLength / 2);
+
+        //     for (let i = 0; i < turns; i++) {
+        //         let uuid = generateUUID();
+
+        //         output += fpLine(x, y, negX, y, conductorWidth, uuid);
+        //         x = negX;
+        //         negX += conductorSpacing;
+        //         output += fpLine(x, y, x, negY, conductorWidth, uuid);
+        //         y = negY;
+        //         negY += conductorSpacing;
+        //         output += fpLine(x, y, posX, y, conductorWidth, uuid);
+        //         x = posX;
+        //         posX -= conductorSpacing;
+        //         output += fpLine(x, y, x, posY - conductorSpacing, conductorWidth, uuid);
+        //         y = posY - conductorSpacing;
+        //         posY -= conductorSpacing;
+
+        //         if (i == turns - 1) {
+        //             output += fpLine(x, y, 0, y, conductorWidth, uuid);
+        //         } else {
+        //             output += fpLine(x, y, negX, y, conductorWidth, uuid);
+        //             x = negX;
+        //         }
+        //     }
+
+        //     document.getElementById('output-rectangular').value = output;
+
+        //     const inductance = calculateInductanceRectangular(turns, antennaLength, antennaWidth, conductorWidth, conductorSpacing);
+        //     document.getElementById('inductance-rectangular').textContent = inductance.toFixed(2);
+        // }
+
+        // function updateOutputSpiral() {
+        //     const radiusOuter = parseFloat(document.getElementById('radius-outer').value) || 0;
+        //     const radiusInner = parseFloat(document.getElementById('radius-inner').value) || 0;
+        //     const turns = parseInt(document.getElementById('spiral-turns').value) || 0;
+        //     const segments = parseInt(document.getElementById('segments').value) || 0;
+        //     const conductorWidth = parseFloat(document.getElementById('spiral-conductor-width').value) || 0;
+
+        //     let output = '';
+        //     const totalSegments = turns * segments;
+        //     const deltaRadius = (radiusOuter - radiusInner) / totalSegments;
+        //     const deltaAngle = 2 * Math.PI / segments;
+
+        //     let radius = radiusOuter;
+        //     let angle = 0;
+
+        //     for (let i = 0; i < totalSegments; i++) {
+        //         let startX = radius * Math.cos(angle);
+        //         let startY = radius * Math.sin(angle);
+        //         radius -= deltaRadius;
+        //         angle += deltaAngle;
+        //         let endX = radius * Math.cos(angle);
+        //         let endY = radius * Math.sin(angle);
+
+        //         output += fpLine(startX, startY, endX, endY, conductorWidth, generateUUID());
+        //     }
+
+        //     document.getElementById('output-spiral').value = output;
+
+        //     const inductance = calculateInductanceSpiral(turns, radiusOuter, radiusInner, conductorWidth);
+        //     document.getElementById('inductance-spiral').textContent = inductance.toFixed(2);
+        // }
+
         function updateOutputSpiral() {
             const radiusOuter = parseFloat(document.getElementById('radius-outer').value) || 0;
             const radiusInner = parseFloat(document.getElementById('radius-inner').value) || 0;
-            const turns = parseInt(document.getElementById('spiral-turns').value) || 0;
+            const turns = parseInt(document.getElementById('turns').value) || 0;
             const segments = parseInt(document.getElementById('segments').value) || 0;
-            const conductorWidth = parseFloat(document.getElementById('spiral-conductor-width').value) || 0;
+            const conductorWidth = parseFloat(document.getElementById('conductor-width').value) || 0;
+            const drillSize = parseFloat(document.getElementById('drill-size').value) || 0;
+            const name = document.getElementById('name').value || "spiral";
+            const silkMargin = 1.0;
 
-            let output = '';
+            // Get current timestamp in seconds
+            let seconds = Math.floor(Date.now() / 1000);
+
+            if (drillSize < 0) {
+                drillSize = Math.floor(conductorWidth / 2 * 10) / 10;
+                if (drillSize === 0) {
+                    console.log("WARNING: drillSize was < 0 and is therefore autocalculated. The resulting drillSize is 0! The pad is replaced by an SMD pad. Select drillSize manually!");
+                }
+            }
+            if (drillSize > conductorWidth) {
+                console.log("WARNING: drillSize > conductorWidth!");
+            }
+
+            let mod = "";
+            mod += `(module ${name} (layer F.Cu) (tedit ${seconds})\n`;
+            mod += `  (fp_text reference REF** (at 0 ${radiusOuter}) (layer F.SilkS)\n`;
+            mod += `    (effects (font (size 1 1) (thickness 0.15)))\n`;
+            mod += `  )\n`;
+            mod += `  (fp_text value ${name} (at 0 ${radiusOuter + 2}) (layer F.Fab)\n`;
+            mod += `    (effects (font (size 1 1) (thickness 0.15)))\n`;
+            mod += `  )\n`;
+            if (silkMargin >= 0) {
+                // Show outline on top silk
+                mod += `  (fp_circle (center 0 ${radiusOuter}) (end 0 ${radiusOuter * 2 + silkMargin}) (layer F.SilkS) (width 0.15))\n`;
+            }
+
+            if (drillSize > 0) {
+                mod += `  (pad 1 thru_hole circle (at ${radiusInner + conductorWidth / 2} ${radiusOuter}) (size ${conductorWidth} ${conductorWidth}) (drill ${drillSize}) (layers *.Cu *.Mask))\n`;
+            }
+            mod += `  (pad 1 smd custom (at ${radiusInner + conductorWidth / 2} ${radiusOuter}) (size ${conductorWidth} ${conductorWidth}) (layers F.Cu)\n`;
+            mod += `    (zone_connect 0)\n`;
+            mod += `    (options (clearance outline) (anchor circle))\n`;
+            mod += `    (primitives\n`;
+
             const totalSegments = turns * segments;
             const deltaRadius = (radiusOuter - radiusInner) / totalSegments;
             const deltaAngle = 2 * Math.PI / segments;
@@ -284,17 +667,34 @@
             let angle = 0;
 
             for (let i = 0; i < totalSegments; i++) {
-                let startX = radius * Math.cos(angle);
+                let startX = radius * Math.cos(angle) - radiusInner;
                 let startY = radius * Math.sin(angle);
                 radius -= deltaRadius;
                 angle += deltaAngle;
-                let endX = radius * Math.cos(angle);
+                let endX = radius * Math.cos(angle) - radiusInner;
                 let endY = radius * Math.sin(angle);
 
-                output += fpLine(startX, startY, endX, endY, conductorWidth, generateUUID());
+                mod += `      (gr_line (start ${startX} ${startY}) (end ${endX} ${endY}) (width ${conductorWidth}))\n`;
             }
 
-            document.getElementById('output-spiral').value = output;
+            mod += `    ))\n`;
+
+            if (drillSize > 0) {
+                mod += `  (pad 2 thru_hole circle (at ${radiusOuter + conductorWidth / 2} ${radiusOuter}) (size ${conductorWidth} ${conductorWidth}) (drill ${drillSize}) (layers *.Cu *.Mask))\n`;
+            }
+            mod += `  (pad 2 smd custom (at ${radiusOuter + conductorWidth / 2} ${radiusOuter}) (size ${conductorWidth} ${conductorWidth}) (layers F.Cu)\n`;
+            mod += `    (zone_connect 0)\n`;
+            mod += `    (options (clearance outline) (anchor circle))\n`;
+            mod += `    (primitives\n`;
+            mod += `      (gr_line (start ${0} ${0}) (end ${0} ${0}) (width ${conductorWidth}))\n`;
+            mod += `    ))\n`;
+
+            mod += `)\n`;
+
+            // Optionally, trigger a file download
+            // downloadFile('spiral.kicad_mod', mod);
+            // document.getElementById('inductance-spiral').textContent = inductance.toFixed(2);
+            document.getElementById('output-spiral').value = mod;
 
             const inductance = calculateInductanceSpiral(turns, radiusOuter, radiusInner, conductorWidth);
             document.getElementById('inductance-spiral').textContent = inductance.toFixed(2);
@@ -322,25 +722,25 @@
             return inductance * 1e6; // Convert to microhenries (uH)
         }
 
-        function fpLine(startX, startY, endX, endY, width, uuid) {
-            return `(fp_line\n` +
-                `\t(start ${startX.toFixed(2)} ${startY.toFixed(2)})\n` +
-                `\t(end ${endX.toFixed(2)} ${endY.toFixed(2)})\n` +
-                `\t(stroke\n` +
-                `\t\t(width ${width.toFixed(2)})\n` +
-                `\t\t(type default)\n` +
-                `\t)\n` +
-                `\t(layer "F.Cu")\n` +
-                `\t(uuid "${uuid}")\n` +
-                `)\n\n`;
-        }
+        // function fpLine(startX, startY, endX, endY, width, uuid) {
+        //     return `(fp_line\n` +
+        //         `\t(start ${startX.toFixed(2)} ${startY.toFixed(2)})\n` +
+        //         `\t(end ${endX.toFixed(2)} ${endY.toFixed(2)})\n` +
+        //         `\t(stroke\n` +
+        //         `\t\t(width ${width.toFixed(2)})\n` +
+        //         `\t\t(type default)\n` +
+        //         `\t)\n` +
+        //         `\t(layer "F.Cu")\n` +
+        //         `\t(uuid "${uuid}")\n` +
+        //         `)\n\n`;
+        // }
 
-        function generateUUID() {
-            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-                const r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-                return v.toString(16);
-            });
-        }
+        // function generateUUID() {
+        //     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+        //         const r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+        //         return v.toString(16);
+        //     });
+        // }
 
         function copyToClipboard(outputId) {
             const output = document.getElementById(outputId);
