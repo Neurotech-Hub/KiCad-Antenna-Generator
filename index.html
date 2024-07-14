@@ -37,7 +37,7 @@
         }
 
         .input-group input {
-            width: 100%;
+            width: 35%;
             padding: 8px;
             box-sizing: border-box;
             border: 1px solid #ccc;
@@ -96,7 +96,15 @@
             background-color: #444;
             border-bottom: 4px solid #4CAF50;
         }
+
+        .formula {
+            font-size: 0.8em;
+            color: #777;
+            margin-top: 10px;
+        }
     </style>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 
 <body>
@@ -139,6 +147,25 @@
                 <label for="conductor-spacing">Conductor Spacing (mm)</label>
                 <input type="number" step="0.01" id="conductor-spacing" oninput="updateOutputRectangular()" value="0.6">
             </div>
+            <div class="input-group">
+                <label for="inductance-rectangular">Est. Inductance (uH)</label>
+                <div id="inductance-rectangular" style="font-size: 1.2em; font-weight: bold;"></div>
+            </div>
+            <div class="formula">
+                <p>
+                    \( L = \frac{K \cdot \mu_0 \cdot N^2 \cdot D_{\text{avg}}}{1 + K_1 \cdot \rho + K_2 \cdot \rho^2} \)
+                </p>
+                <p>
+                    where,
+                    \( K = 2.34 \),
+                    \( K_1 = 2.75 \),
+                    \( K_2 = 0 \),
+                    \( \mu_0 = 4\pi \times 10^{-7} \) H/m,
+                    \( N \) is the number of turns,
+                    \( D_{\text{avg}} = \frac{L_{\text{antenna}} + W_{\text{antenna}}}{2} \) (meters),
+                    \( \rho = \frac{L_{\text{antenna}} - W_{\text{antenna}}}{L_{\text{antenna}} + W_{\text{antenna}}} \)
+                </p>
+            </div>
             <textarea id="output-rectangular" readonly></textarea>
             <button id="copy-button-rectangular" onclick="copyToClipboard('output-rectangular')">Click to Copy</button>
         </div>
@@ -163,6 +190,23 @@
             <div class="input-group">
                 <label for="conductor-width">Conductor Width (mm)</label>
                 <input type="number" step="0.01" id="spiral-conductor-width" oninput="updateOutputSpiral()" value="0.2">
+            </div>
+            <div class="input-group">
+                <label for="inductance-spiral">Est. Inductance (uH)</label>
+                <div id="inductance-spiral" style="font-size: 1.2em; font-weight: bold;"></div>
+            </div>
+            <div class="formula">
+                <p>
+                    \( L = \frac{\mu_0 \cdot N^2 \cdot D_{\text{avg}}}{1 + 2.75 \cdot \frac{c}{2 \cdot D_{\text{avg}}}}
+                    \)
+                </p>
+                <p>
+                    where,
+                    \( \mu_0 = 4\pi \times 10^{-7} \) H/m,
+                    \( N \) is the number of turns,
+                    \( D_{\text{avg}} = \frac{D_{\text{outer}} + D_{\text{inner}}}{2} \) (meters),
+                    \( c = D_{\text{outer}} - D_{\text{inner}} \) (meters)
+                </p>
             </div>
             <textarea id="output-spiral" readonly></textarea>
             <button id="copy-button-spiral" onclick="copyToClipboard('output-spiral')">Click to Copy</button>
@@ -219,6 +263,9 @@
             }
 
             document.getElementById('output-rectangular').value = output;
+
+            const inductance = calculateInductanceRectangular(turns, antennaLength, antennaWidth, conductorWidth, conductorSpacing);
+            document.getElementById('inductance-rectangular').textContent = inductance.toFixed(2);
         }
 
         function updateOutputSpiral() {
@@ -248,6 +295,31 @@
             }
 
             document.getElementById('output-spiral').value = output;
+
+            const inductance = calculateInductanceSpiral(turns, radiusOuter, radiusInner, conductorWidth);
+            document.getElementById('inductance-spiral').textContent = inductance.toFixed(2);
+        }
+
+        function calculateInductanceRectangular(turns, length, width, conductorWidth, conductorSpacing) {
+            // Placeholder for rectangular inductor calculation
+            // Formula to be replaced with an accurate one if available
+            // Here is a rough estimate using similar principles to spiral inductor
+            const K = 2.34;
+            const K1 = 2.75;
+            const K2 = 0;
+            const mu0 = 4 * Math.PI * 1e-7;
+            const D_avg = (length + width) / 2 / 1000;
+            const rho = (length - width) / (length + width);
+            const inductance = (K * mu0 * turns ** 2 * D_avg) / (1 + K1 * rho + K2 * rho ** 2);
+            return inductance * 1e6; // Convert to microhenries (uH)
+        }
+
+        function calculateInductanceSpiral(turns, radiusOuter, radiusInner, conductorWidth) {
+            const mu0 = 4 * Math.PI * 1e-7; // Permeability of free space (H/m)
+            const D_avg = (radiusOuter + radiusInner) / 2 / 1000; // Convert to meters
+            const c = (radiusOuter - radiusInner) / 1000; // Convert to meters
+            const inductance = (mu0 * turns ** 2 * D_avg) / (1 + (2.75 * c / (2 * D_avg)));
+            return inductance * 1e6; // Convert to microhenries (uH)
         }
 
         function fpLine(startX, startY, endX, endY, width, uuid) {
@@ -283,7 +355,7 @@
 
             setTimeout(() => {
                 copyButton.textContent = originalText;
-            }, 1000);
+            }, 2000);
         }
 
         window.addEventListener('load', () => {
@@ -291,6 +363,7 @@
             updateOutputSpiral();
             showTab('rectangular');
         });
+
     </script>
 
 </body>
