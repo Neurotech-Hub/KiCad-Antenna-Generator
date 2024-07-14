@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,6 +15,7 @@
             font-family: Arial, sans-serif;
             background-color: #f0f0f0;
         }
+
         .container {
             text-align: center;
             background: #fff;
@@ -23,14 +25,17 @@
             width: 80%;
             max-width: 600px;
         }
+
         .input-group {
             margin: 10px 0;
         }
+
         .input-group label {
             display: block;
             margin-bottom: 5px;
             font-weight: bold;
         }
+
         .input-group input {
             width: 100%;
             padding: 8px;
@@ -38,7 +43,8 @@
             border: 1px solid #ccc;
             border-radius: 4px;
         }
-        #output {
+
+        textarea {
             margin-top: 20px;
             width: 100%;
             height: 200px;
@@ -49,143 +55,244 @@
             font-family: monospace;
             resize: none;
         }
-        #copy-button {
+
+        button {
             margin-top: 10px;
             padding: 10px 20px;
             font-size: 16px;
             background-color: #4CAF50;
             color: white;
             border: none;
-            border-radius: 4px;
             cursor: pointer;
         }
-        #copy-button:hover {
+
+        button:hover {
             background-color: #45a049;
+        }
+
+        .tab {
+            display: none;
+        }
+
+        .tab-buttons {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #666;
+        }
+
+        .tab-buttons button {
+            margin: 0;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #555;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: #f0f0f0;
+        }
+
+        .tab-buttons button.active {
+            background-color: #444;
+            border-bottom: 4px solid #4CAF50;
         }
     </style>
 </head>
+
 <body>
 
-<div class="container">
-    <h1>KiCad Antenna Line Generator</h1>
-    <p style="text-align: left;">Input your antenna parameters and copy the output text. Create an empty KiCad footprint and save it. Navigate to your new *.kicad_mod file, open it in a text editor, and paste the lines within the top-level enclosing parentheses. Save the file—if it's still open in KiCad it should ask you if you want to reload it.</p>
-    <div class="input-group">
-        <label for="turns">Turns</label>
-        <input type="number" id="turns" oninput="updateOutput()" value="10">
+    <div class="container">
+        <h1>KiCad Antenna Line Generator</h1>
+        <p style="text-align: left;">Input your antenna parameters and copy the output text. Create an empty KiCad
+            footprint and save it. Navigate to your new *.kicad_mod file, open it in a text editor, and paste the
+            lines within the top-level enclosing parentheses. Save the file—if it's still open in KiCad it should
+            ask you if you want to reload it.</p>
+        <p style="text-align: left;">Based on the <a
+                href="an2972-how-to-design-an-antenna-for-dynamic-nfc-tags-stmicroelectronics.pdf">AN2972:
+                How to design an antenna for dynamic NFC tags</a>.</p>
+
+        <br>
+
+        <div class="tab-buttons">
+            <button onclick="showTab('rectangular')" class="active">Rectangular</button>
+            <button onclick="showTab('spiral')">Spiral</button>
+        </div>
+
+        <div id="rectangular" class="tab">
+            <div class="input-group">
+                <label for="turns">Turns</label>
+                <input type="number" id="turns" oninput="updateOutputRectangular()" value="10">
+            </div>
+            <div class="input-group">
+                <label for="antenna-length">Antenna Length (mm)</label>
+                <input type="number" step="0.01" id="antenna-length" oninput="updateOutputRectangular()" value="45">
+            </div>
+            <div class="input-group">
+                <label for="antenna-width">Antenna Width (mm)</label>
+                <input type="number" step="0.01" id="antenna-width" oninput="updateOutputRectangular()" value="25">
+            </div>
+            <div class="input-group">
+                <label for="conductor-width">Conductor Width (mm)</label>
+                <input type="number" step="0.01" id="conductor-width" oninput="updateOutputRectangular()" value="0.2">
+            </div>
+            <div class="input-group">
+                <label for="conductor-spacing">Conductor Spacing (mm)</label>
+                <input type="number" step="0.01" id="conductor-spacing" oninput="updateOutputRectangular()" value="0.6">
+            </div>
+            <textarea id="output-rectangular" readonly></textarea>
+            <button id="copy-button-rectangular" onclick="copyToClipboard('output-rectangular')">Click to Copy</button>
+        </div>
+
+        <div id="spiral" class="tab">
+            <div class="input-group">
+                <label for="radius-outer">Radius Outer (mm)</label>
+                <input type="number" step="0.01" id="radius-outer" oninput="updateOutputSpiral()" value="50">
+            </div>
+            <div class="input-group">
+                <label for="radius-inner">Radius Inner (mm)</label>
+                <input type="number" step="0.01" id="radius-inner" oninput="updateOutputSpiral()" value="30">
+            </div>
+            <div class="input-group">
+                <label for="turns">Turns</label>
+                <input type="number" id="spiral-turns" oninput="updateOutputSpiral()" value="10">
+            </div>
+            <div class="input-group">
+                <label for="segments">Segments Per Turn</label>
+                <input type="number" id="segments" oninput="updateOutputSpiral()" value="36">
+            </div>
+            <div class="input-group">
+                <label for="conductor-width">Conductor Width (mm)</label>
+                <input type="number" step="0.01" id="spiral-conductor-width" oninput="updateOutputSpiral()" value="0.2">
+            </div>
+            <textarea id="output-spiral" readonly></textarea>
+            <button id="copy-button-spiral" onclick="copyToClipboard('output-spiral')">Click to Copy</button>
+        </div>
     </div>
-    <div class="input-group">
-        <label for="antenna-length">Antenna Length (mm)</label>
-        <input type="number" step="0.01" id="antenna-length" oninput="updateOutput()" value="45">
-    </div>
-    <div class="input-group">
-        <label for="antenna-width">Antenna Width (mm)</label>
-        <input type="number" step="0.01" id="antenna-width" oninput="updateOutput()" value="25">
-    </div>
-    <div class="input-group">
-        <label for="conductor-width">Conductor Width (mm)</label>
-        <input type="number" step="0.01" id="conductor-width" oninput="updateOutput()" value="0.2">
-    </div>
-    <div class="input-group">
-        <label for="conductor-spacing">Conductor Spacing (mm)</label>
-        <input type="number" step="0.01" id="conductor-spacing" oninput="updateOutput()" value="0.6">
-    </div>
-    <textarea id="output" readonly></textarea>
-    <button id="copy-button" onclick="copyToClipboard()">Click to Copy</button>
-</div>
 
-<script>
-function updateOutput() {
-    const turns = parseInt(document.getElementById('turns').value) || 0;
-    const antennaLength = parseFloat(document.getElementById('antenna-length').value) || 0;
-    const antennaWidth = parseFloat(document.getElementById('antenna-width').value) || 0;
-    const conductorWidth = parseFloat(document.getElementById('conductor-width').value) || 0;
-    const conductorSpacing = parseFloat(document.getElementById('conductor-spacing').value) || 0;
-
-    let output = '';
-    let x = 0;
-    let y = antennaLength / 2;
-
-    // Define the starting boundaries
-    let posX = antennaWidth / 2;
-    let negX = -(antennaWidth / 2);
-    let posY = antennaLength / 2;
-    let negY = -(antennaLength / 2);
-
-    for (let i = 0; i < turns; i++) {
-        let uuid = generateUUID();
-
-        // First Line: Extend left
-        output += fpLine(x, y, negX, y, conductorWidth, uuid);
-        x = negX;
-
-        // Adjust negative X boundary inward
-        negX += conductorSpacing;
-
-        // Second Line: Extend upward (more negative y)
-        output += fpLine(x, y, x, negY, conductorWidth, uuid);
-        y = negY;
-
-        // Adjust negative Y boundary inward
-        negY += conductorSpacing;
-
-        // Third Line: Extend right (more positive x)
-        output += fpLine(x, y, posX, y, conductorWidth, uuid);
-        x = posX;
-
-        // Adjust positive X boundary inward
-        posX -= conductorSpacing;
-
-        // Fourth Line: Extend downward (less negative y)
-        output += fpLine(x, y, x, posY - conductorSpacing, conductorWidth, uuid);
-        y = posY - conductorSpacing;
-
-        // Adjust positive Y boundary inward
-        posY -= conductorSpacing;
-
-        // Fifth Line: Extend left (more negative x)
-        if (i == turns - 1) {
-            // Final turn: adjust the end x position to 0
-            output += fpLine(x, y, 0, y, conductorWidth, uuid);
-        } else {
-            output += fpLine(x, y, negX, y, conductorWidth, uuid);
-            x = negX;
+    <script>
+        function showTab(tabName) {
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => tab.style.display = 'none');
+            document.getElementById(tabName).style.display = 'block';
+            document.querySelectorAll('.tab-buttons button').forEach(btn => btn.classList.remove('active'));
+            document.querySelector('.tab-buttons button[onclick="showTab(\'' + tabName + '\')"]').classList.add('active');
         }
-    }
 
-    document.getElementById('output').value = output;
-}
+        function updateOutputRectangular() {
+            const turns = parseInt(document.getElementById('turns').value) || 0;
+            const antennaLength = parseFloat(document.getElementById('antenna-length').value) || 0;
+            const antennaWidth = parseFloat(document.getElementById('antenna-width').value) || 0;
+            const conductorWidth = parseFloat(document.getElementById('conductor-width').value) || 0;
+            const conductorSpacing = parseFloat(document.getElementById('conductor-spacing').value) || 0;
 
-function fpLine(startX, startY, endX, endY, width, uuid) {
-    return `(fp_line\n` +
-        `\t(start ${startX.toFixed(2)} ${startY.toFixed(2)})\n` +
-        `\t(end ${endX.toFixed(2)} ${endY.toFixed(2)})\n` +
-        `\t(stroke\n` +
-        `\t\t(width ${width.toFixed(2)})\n` +
-        `\t\t(type default)\n` +
-        `\t)\n` +
-        `\t(layer "F.Cu")\n` +
-        `\t(uuid "${uuid}")\n` +
-        `)\n\n`;
-}
+            let output = '';
+            let x = 0;
+            let y = antennaLength / 2;
 
-function generateUUID() {
-    // Simple UUID generator
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-        const r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-        return v.toString(16);
-    });
-}
+            let posX = antennaWidth / 2;
+            let negX = -(antennaWidth / 2);
+            let posY = antennaLength / 2;
+            let negY = -(antennaLength / 2);
 
-window.addEventListener('load', updateOutput);
+            for (let i = 0; i < turns; i++) {
+                let uuid = generateUUID();
 
-    function copyToClipboard() {
-        const output = document.getElementById('output');
-        output.select();
-        output.setSelectionRange(0, 99999); // For mobile devices
-        document.execCommand("copy");
-        alert("Output copied to clipboard");
-    }
-</script>
+                output += fpLine(x, y, negX, y, conductorWidth, uuid);
+                x = negX;
+                negX += conductorSpacing;
+                output += fpLine(x, y, x, negY, conductorWidth, uuid);
+                y = negY;
+                negY += conductorSpacing;
+                output += fpLine(x, y, posX, y, conductorWidth, uuid);
+                x = posX;
+                posX -= conductorSpacing;
+                output += fpLine(x, y, x, posY - conductorSpacing, conductorWidth, uuid);
+                y = posY - conductorSpacing;
+                posY -= conductorSpacing;
+
+                if (i == turns - 1) {
+                    output += fpLine(x, y, 0, y, conductorWidth, uuid);
+                } else {
+                    output += fpLine(x, y, negX, y, conductorWidth, uuid);
+                    x = negX;
+                }
+            }
+
+            document.getElementById('output-rectangular').value = output;
+        }
+
+        function updateOutputSpiral() {
+            const radiusOuter = parseFloat(document.getElementById('radius-outer').value) || 0;
+            const radiusInner = parseFloat(document.getElementById('radius-inner').value) || 0;
+            const turns = parseInt(document.getElementById('spiral-turns').value) || 0;
+            const segments = parseInt(document.getElementById('segments').value) || 0;
+            const conductorWidth = parseFloat(document.getElementById('spiral-conductor-width').value) || 0;
+
+            let output = '';
+            const totalSegments = turns * segments;
+            const deltaRadius = (radiusOuter - radiusInner) / totalSegments;
+            const deltaAngle = 2 * Math.PI / segments;
+
+            let radius = radiusOuter;
+            let angle = 0;
+
+            for (let i = 0; i < totalSegments; i++) {
+                let startX = radius * Math.cos(angle);
+                let startY = radius * Math.sin(angle);
+                radius -= deltaRadius;
+                angle += deltaAngle;
+                let endX = radius * Math.cos(angle);
+                let endY = radius * Math.sin(angle);
+
+                output += fpLine(startX, startY, endX, endY, conductorWidth, generateUUID());
+            }
+
+            document.getElementById('output-spiral').value = output;
+        }
+
+        function fpLine(startX, startY, endX, endY, width, uuid) {
+            return `(fp_line\n` +
+                `\t(start ${startX.toFixed(2)} ${startY.toFixed(2)})\n` +
+                `\t(end ${endX.toFixed(2)} ${endY.toFixed(2)})\n` +
+                `\t(stroke\n` +
+                `\t\t(width ${width.toFixed(2)})\n` +
+                `\t\t(type default)\n` +
+                `\t)\n` +
+                `\t(layer "F.Cu")\n` +
+                `\t(uuid "${uuid}")\n` +
+                `)\n\n`;
+        }
+
+        function generateUUID() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                const r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+
+        function copyToClipboard(outputId) {
+            const output = document.getElementById(outputId);
+            const copyButton = document.querySelector(`#copy-button-${outputId.split('-')[1]}`);
+
+            output.select();
+            output.setSelectionRange(0, 99999);
+            document.execCommand("copy");
+
+            const originalText = copyButton.textContent;
+            copyButton.textContent = "Copied!";
+
+            setTimeout(() => {
+                copyButton.textContent = originalText;
+            }, 1000);
+        }
+
+        window.addEventListener('load', () => {
+            updateOutputRectangular();
+            updateOutputSpiral();
+            showTab('rectangular');
+        });
+    </script>
 
 </body>
+
 </html>
