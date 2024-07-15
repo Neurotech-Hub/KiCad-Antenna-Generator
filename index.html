@@ -666,7 +666,7 @@
             mod += `  (pad 1 smd custom (at ${radiusInner + conductorWidth / 2} ${radiusOuter}) (size ${conductorWidth} ${conductorWidth}) (layers F.Cu)\n`;
             mod += `    (zone_connect 0)\n`;
             mod += `    (options (clearance outline) (anchor circle))\n`;
-            mod += `    (primitives\n`;
+            mod += `    (primitives\n(net_tie_pad_groups "1,2")\n`;
 
             const totalSegments = turns * segments;
             const deltaRadius = (radiusOuter - radiusInner) / totalSegments;
