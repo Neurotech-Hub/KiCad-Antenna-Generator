@@ -118,7 +118,8 @@
     <div class="container">
         <h1>KiCad Antenna Generator</h1>
         <p>These also exist as Footprint Wizards: <a
-                href="https://github.com/Neurotech-Hub/KiCad-Plugins-8.0/tree/main">Neurotech-Hub/KiCad-Plugins-8.0</a>
+                href="https://github.com/Neurotech-Hub/KiCad-Plugins-8.0/tree/main">Neurotech-Hub/KiCad-Plugins-8.0</a>.
+            Pad nets will be automatically tied.
         </p>
 
         <div class="input-group">
@@ -404,7 +405,7 @@
                 mod += `    (options (clearance outline) (anchor circle))\n`;
                 mod += `    (primitives\n`;
                 mod += `      (gr_line (start 0 0) (end ${antennaLength / 2 - (xg / 2 + conductorWidth / 2) - d + (turns - 1 - Math.floor(seg / 6)) * dx1} 0) (width ${conductorWidth}))\n`;
-                mod += `    ))\n`;
+                mod += `    )(net_tie_pad_groups "1,2")\n)\n`;
             } else if (style === 2) { // Slope always on the same x location
                 if (conductorSpacingMin < 0) {
                     conductorSpacingMin = conductorSpacing / Math.sqrt(2);
@@ -474,7 +475,7 @@
                 mod += `    (options (clearance outline) (anchor circle))\n`;
                 mod += `    (primitives\n`;
                 mod += `      (gr_line (start ${0} ${0}) (end ${antennaLength / 2 - xg / 2 - conductorWidth / 2 - (turns - 1) * (conductorWidth + conductorSpacing)} ${0}) (width ${conductorWidth}))\n`;
-                mod += `    ))\n`;
+                mod += `    )(net_tie_pad_groups "1,2")\n)\n`;
             } else if (style === 1) { // Straight lines
                 if (drillSize > 0) {
                     mod += `  (pad 1 thru_hole circle (at ${conductorWidth / 2} ${antennaWidth - conductorWidth / 2}) (size ${conductorWidth} ${conductorWidth}) (drill ${drillSize}) (layers *.Cu *.Mask))\n`;
@@ -537,7 +538,7 @@
                 mod += `    (options (clearance outline) (anchor circle))\n`;
                 mod += `    (primitives\n`;
                 mod += `      (gr_line (start ${0} ${0}) (end ${antennaLength + conductorSpacing - 2 * turns * (conductorWidth + conductorSpacing)} ${0}) (width ${conductorWidth}))\n`;
-                mod += `    ))\n`;
+                mod += `    )(net_tie_pad_groups "1,2")\n)\n`;
             }
             mod += `)\n`;
             document.getElementById('output-rectangular').value = mod;
@@ -545,84 +546,6 @@
             const inductance = calculateInductanceRectangular(turns, antennaLength, antennaWidth, conductorWidth, conductorSpacing);
             document.getElementById('inductance-rectangular').textContent = inductance.toFixed(2);
         }
-
-        // function updateOutputRectangular() {
-        //     const turns = parseInt(document.getElementById('turns').value) || 0;
-        //     const antennaLength = parseFloat(document.getElementById('antenna-length').value) || 0;
-        //     const antennaWidth = parseFloat(document.getElementById('antenna-width').value) || 0;
-        //     const conductorWidth = parseFloat(document.getElementById('conductor-width').value) || 0;
-        //     const conductorSpacing = parseFloat(document.getElementById('conductor-spacing').value) || 0;
-
-        //     let output = '';
-        //     let x = 0;
-        //     let y = antennaLength / 2;
-
-        //     let posX = antennaWidth / 2;
-        //     let negX = -(antennaWidth / 2);
-        //     let posY = antennaLength / 2;
-        //     let negY = -(antennaLength / 2);
-
-        //     for (let i = 0; i < turns; i++) {
-        //         let uuid = generateUUID();
-
-        //         output += fpLine(x, y, negX, y, conductorWidth, uuid);
-        //         x = negX;
-        //         negX += conductorSpacing;
-        //         output += fpLine(x, y, x, negY, conductorWidth, uuid);
-        //         y = negY;
-        //         negY += conductorSpacing;
-        //         output += fpLine(x, y, posX, y, conductorWidth, uuid);
-        //         x = posX;
-        //         posX -= conductorSpacing;
-        //         output += fpLine(x, y, x, posY - conductorSpacing, conductorWidth, uuid);
-        //         y = posY - conductorSpacing;
-        //         posY -= conductorSpacing;
-
-        //         if (i == turns - 1) {
-        //             output += fpLine(x, y, 0, y, conductorWidth, uuid);
-        //         } else {
-        //             output += fpLine(x, y, negX, y, conductorWidth, uuid);
-        //             x = negX;
-        //         }
-        //     }
-
-        //     document.getElementById('output-rectangular').value = output;
-
-        //     const inductance = calculateInductanceRectangular(turns, antennaLength, antennaWidth, conductorWidth, conductorSpacing);
-        //     document.getElementById('inductance-rectangular').textContent = inductance.toFixed(2);
-        // }
-
-        // function updateOutputSpiral() {
-        //     const radiusOuter = parseFloat(document.getElementById('radius-outer').value) || 0;
-        //     const radiusInner = parseFloat(document.getElementById('radius-inner').value) || 0;
-        //     const turns = parseInt(document.getElementById('spiral-turns').value) || 0;
-        //     const segments = parseInt(document.getElementById('segments').value) || 0;
-        //     const conductorWidth = parseFloat(document.getElementById('spiral-conductor-width').value) || 0;
-
-        //     let output = '';
-        //     const totalSegments = turns * segments;
-        //     const deltaRadius = (radiusOuter - radiusInner) / totalSegments;
-        //     const deltaAngle = 2 * Math.PI / segments;
-
-        //     let radius = radiusOuter;
-        //     let angle = 0;
-
-        //     for (let i = 0; i < totalSegments; i++) {
-        //         let startX = radius * Math.cos(angle);
-        //         let startY = radius * Math.sin(angle);
-        //         radius -= deltaRadius;
-        //         angle += deltaAngle;
-        //         let endX = radius * Math.cos(angle);
-        //         let endY = radius * Math.sin(angle);
-
-        //         output += fpLine(startX, startY, endX, endY, conductorWidth, generateUUID());
-        //     }
-
-        //     document.getElementById('output-spiral').value = output;
-
-        //     const inductance = calculateInductanceSpiral(turns, radiusOuter, radiusInner, conductorWidth);
-        //     document.getElementById('inductance-spiral').textContent = inductance.toFixed(2);
-        // }
 
         function updateOutputSpiral() {
             const radiusOuter = parseFloat(document.getElementById('radius-outer').value) || 0;
@@ -666,7 +589,7 @@
             mod += `  (pad 1 smd custom (at ${radiusInner + conductorWidth / 2} ${radiusOuter}) (size ${conductorWidth} ${conductorWidth}) (layers F.Cu)\n`;
             mod += `    (zone_connect 0)\n`;
             mod += `    (options (clearance outline) (anchor circle))\n`;
-            mod += `    (primitives\n(net_tie_pad_groups "1,2")\n`;
+            mod += `    (primitives\n`;
 
             const totalSegments = turns * segments;
             const deltaRadius = (radiusOuter - radiusInner) / totalSegments;
@@ -698,7 +621,7 @@
             mod += `      (gr_line (start ${0} ${0}) (end ${0} ${0}) (width ${conductorWidth}))\n`;
             mod += `    ))\n`;
 
-            mod += `)\n`;
+            mod += `(net_tie_pad_groups "1,2")\n)\n`;
 
             // Optionally, trigger a file download
             // downloadFile('spiral.kicad_mod', mod);
