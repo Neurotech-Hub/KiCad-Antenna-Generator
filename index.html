@@ -9,11 +9,12 @@
         body {
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start;
             height: 100vh;
             margin: 0;
             font-family: Arial, sans-serif;
             background-color: #f0f0f0;
+            overflow: auto;
         }
 
         .container {
@@ -113,9 +114,11 @@
 </head>
 
 <body>
-
     <div class="container">
         <h1>KiCad Antenna Generator</h1>
+        <p>These also exist as Footprint Wizards: <a
+                href="https://github.com/Neurotech-Hub/KiCad-Plugins-8.0/tree/main">Neurotech-Hub/KiCad-Plugins-8.0</a>
+        </p>
 
         <div class="input-group">
             <label for="radius-outer">Part Name</label>
